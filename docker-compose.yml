@@ -1,0 +1,79 @@
+services:
+
+  db:
+    image: postgres:latest
+    container_name: db
+    # ports:
+    #   - "5439:5432"
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: demo
+      POSTGRES_MULTIPLE_DATABASES: kratos
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "9090:80"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+
+    restart: always
+
+
+  kratos-migrate:
+    image: oryd/kratos:v1.2.0
+    environment:
+      - DSN=postgres://demo:demo@db:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+    volumes:
+      - type: bind
+        source: ./kratos
+        target: /etc/config/kratos
+    command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
+    restart: on-failure
+    depends_on:
+      - db
+
+  kratos-selfservice-ui-node:
+    image: oryd/kratos-selfservice-ui-node:v1.2.0
+    ports:
+      - "4455:4455"
+    environment:
+      - KRATOS_PUBLIC_URL=http://kratos:4433
+      - KRATOS_BROWSER_URL=http://kratos.local:9090
+      - KRATOS_ADMIN_URL=http://kratos:4434
+      - COOKIE_SECRET=your-secure-cookie-secret
+      - CSRF_COOKIE_NAME=ory_csrf_ui_demo
+      - CSRF_COOKIE_SECRET=your-secure-csrf-secret
+      - PORT=4455
+    restart: on-failure
+
+  kratos:
+    depends_on:
+      - kratos-migrate
+    image: oryd/kratos:v1.2.0
+    ports:
+      - '4433:4433' # public
+      - '4434:4434' # admin
+    restart: unless-stopped
+    environment:
+      - DSN=postgres://demo:demo@db:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+      - LOG_LEVEL=trace
+    command: serve -c /etc/config/kratos/kratos.yml --dev --watch-courier
+    volumes:
+      - type: bind
+        source: ./kratos
+        target: /etc/config/kratos
+
+  mailslurper:
+    image: oryd/mailslurper:latest-smtps
+    ports:
+      - '4436:4436'
+      - '4437:4437'
+
+volumes:
+  pgdata:

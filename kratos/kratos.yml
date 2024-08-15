@@ -1,0 +1,81 @@
+version: v1.2.0
+
+dsn: postgres://demo:demo@db:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+
+serve:
+  public:
+    base_url: http://kratos.local:9090/
+    cors:
+      enabled: true
+      allowed_origins:
+        - http://account.local
+  admin:
+    base_url: http://kratos:4434
+
+selfservice:
+  default_browser_return_url: http://account.local:9090/welcome
+  allowed_return_urls:
+    - http://account.local
+
+
+  methods:
+    password:
+      enabled: true
+      config:
+        min_password_length: 6
+        identifier_similarity_check_enabled: false
+        haveibeenpwned_enabled: false
+
+  flows:
+    error:
+      ui_url: http://account.local:9090/error
+
+    settings:
+      ui_url: http://account.local:9090/settings
+      privileged_session_max_age: 15m
+      required_aal: highest_available
+
+    logout:
+      after:
+        default_browser_return_url: http://account.local:9090/login
+
+    login:
+      ui_url: http://account.local:9090/login
+
+    registration:
+      ui_url: http://account.local:9090/registration
+      after:
+        password:
+          hooks:
+            - hook: session
+    verification:
+      enabled: true
+      ui_url: http://api.local
+      lifespan: "1h"
+      use: code
+      notify_unknown_recipients: false
+
+
+
+log:
+  format: text
+  leak_sensitive_values: true
+  level: trace
+secrets:
+  cookie:
+    - PLEASE-CHANGE-ME-I-AM-VERY-INSECURE
+  cipher:
+    - 32-LONG-SECRET-NOT-SECURE-AT-ALL
+
+identity:
+  default_schema_id: default
+  schemas: 
+    - id: default
+      url: file:///etc/config/kratos/identity.schema.json
+
+courier:
+  smtp:
+    connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
+
+feature_flags:
+  use_continue_with_transitions: true
