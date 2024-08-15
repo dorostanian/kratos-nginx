@@ -51,7 +51,8 @@ services:
       - CSRF_COOKIE_SECRET=your-secure-csrf-secret
       - PORT=4455
     restart: on-failure
-
+    depends_on:
+      - kratos
   kratos:
     depends_on:
       - kratos-migrate
