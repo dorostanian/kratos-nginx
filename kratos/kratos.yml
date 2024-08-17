@@ -4,7 +4,8 @@ dsn: postgres://demo:demo@db:5432/kratos?sslmode=disable&max_conns=20&max_idle_c
 
 serve:
   public:
-    base_url: http://kratos.local:9090/
+    base_url: http://account.local:9090/kratos
+    
     cors:
       enabled: true
       allowed_origins:
@@ -13,9 +14,9 @@ serve:
     base_url: http://kratos:4434
 
 selfservice:
-  default_browser_return_url: http://account.local:9090/welcome
+  default_browser_return_url: http://account.local:9090/ui/welcome
   allowed_return_urls:
-    - http://account.local
+    - http://account.local/ui/
 
 
   methods:
@@ -28,26 +29,28 @@ selfservice:
 
   flows:
     error:
-      ui_url: http://account.local:9090/error
+      ui_url: http://account.local:9090/ui/error
 
     settings:
-      ui_url: http://account.local:9090/settings
+      ui_url: http://account.local:9090/ui/settings
       privileged_session_max_age: 15m
       required_aal: highest_available
 
     logout:
       after:
-        default_browser_return_url: http://account.local:9090/login
+        default_browser_return_url: http://account.local:9090/ui/login
 
     login:
-      ui_url: http://account.local:9090/login
+      ui_url: http://account.local:9090/ui/login
 
     registration:
-      ui_url: http://account.local:9090/registration
+      ui_url: http://account.local:9090/ui/registration
       after:
         password:
           hooks:
             - hook: session
+        default_browser_return_url: http://api.account:9090/v1/register
+
     verification:
       enabled: true
       ui_url: http://api.local

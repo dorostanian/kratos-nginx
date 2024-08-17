@@ -44,7 +44,7 @@ services:
       - "4455:4455"
     environment:
       - KRATOS_PUBLIC_URL=http://kratos:4433
-      - KRATOS_BROWSER_URL=http://kratos.local:9090
+      - KRATOS_BROWSER_URL=http://account.local:9090/kratos
       - KRATOS_ADMIN_URL=http://kratos:4434
       - COOKIE_SECRET=your-secure-cookie-secret
       - CSRF_COOKIE_NAME=ory_csrf_ui_demo
